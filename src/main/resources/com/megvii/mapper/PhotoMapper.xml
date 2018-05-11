@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.megvii.dbsource.oracle.mapper.PhotoMapper">
+  <resultMap id="BaseResultMap" type="com.megvii.po.Photo">
+    <result column="XM" jdbcType="VARCHAR" property="name"/>
+    <result column="SFZH" jdbcType="VARCHAR" property="cardId"/>
+    <result column="RKSJ_ZYK" jdbcType="DATE" property="changeTime"/>
+    <result column="XB" jdbcType="VARCHAR" property="sex"/>
+    <result column="XP" jdbcType="BLOB" property="photoFileData"/>
+    <result column="MZ" jdbcType="VARCHAR" property="ethnic"/>
+    <result column="HJ" jdbcType="VARCHAR" property="HJ"/>
+    <result column="SJLY" jdbcType="VARCHAR" property="dataSource"/>
+  </resultMap>
+
+
+
+
+
+  <select id="selectPhotoByPage" resultMap="BaseResultMap">
+    SELECT *  FROM (SELECT ROWNUM AS rowno, t.* FROM "photo" t WHERE ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
+  </select>
+
+  <select id="selectPhotoCount" resultType="java.lang.Integer">
+    SELECT count(SFZH)  FROM "photo"
+  </select>
+
+
+
+
+  <insert id="testInsert" parameterType="Map">
+    INSERT INTO "SCOTT"."photo" ("id", "SFZH", "XM", "XB", "XP", "MZ","HJ","RKSJ_ZYK") VALUES (#{id},#{cradId},#{id},'1',#{bytes,jdbcType=BLOB},'汉','shandong',#{changeTiem,jdbcType=DATE})
+  </insert>
+
+
+</mapper>

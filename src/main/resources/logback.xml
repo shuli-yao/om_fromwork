@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+
+    <logger name="com.megvii" level="info"/>
+    <logger name="org.springframework" level="info"/>
+
+    <include resource="logback-base.xml"/>
+
+</configuration>
