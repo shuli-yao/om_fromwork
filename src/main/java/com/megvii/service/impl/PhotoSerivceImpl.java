@@ -5,12 +5,14 @@ import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
 import com.megvii.thread.DownloadThreadPool;
 import com.megvii.utlis.ShellUtil;
+import com.megvii.utlis.TextUtils;
 import com.sun.javafx.collections.MappingChange;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,8 @@ public class PhotoSerivceImpl implements PhotoService{
         return photoMapper.selectPhotoCount();
     }
 
+
+
     @Override
     public void photoToLoca(Integer queryMaxSize) {
         log.info("开始执行入库工具，落地图片功能！");
@@ -49,10 +53,13 @@ public class PhotoSerivceImpl implements PhotoService{
         int whileCount = 10;
         int begin = 0;
         int end = queryMaxSize;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         for (int i = 0; i < whileCount; i++) {
             Date beginDate = new Date();
             List<Photo> photos = findByPhotos(begin, end);
             for (Photo photo : photos) {
+
                 downloadThreadPool.putImgUrl(photo);
             }
             Date endDate = new Date();
@@ -80,6 +87,7 @@ public class PhotoSerivceImpl implements PhotoService{
         Map<String,Object> map = new HashMap<>();
         map.put("id",id);
         map.put("bytes",bytes);
+
         map.put("changeTiem",new Date());
 
         map.put("cradId",cradId);

@@ -33,7 +33,7 @@ public class DataSourceConfig {
   @Bean(name = "photoDataSource", destroyMethod = "close")
   @Qualifier("photoDataSource")
   public DataSource dataSource() throws SQLException {
-
+      System.out.println(jdbcDriver);
     HikariConfig hikariConfig = new HikariConfig();
     hikariConfig.setDriverClassName(jdbcDriver);
     hikariConfig.setJdbcUrl(url);

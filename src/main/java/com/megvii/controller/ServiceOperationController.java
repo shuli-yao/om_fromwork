@@ -5,11 +5,13 @@ import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
 import com.megvii.thread.DownloadThreadPool;
 import com.megvii.utlis.ShellUtil;
+import com.megvii.utlis.TextUtils;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.omg.PortableInterceptor.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +39,8 @@ public class ServiceOperationController {
 
     //入库状态防止程序执行中，多次点击全量入库
     private  Boolean improtState= false;
+
+    private TextUtils textUtils = new TextUtils();
 
 
     @PostMapping("/allImprotPhoto")
@@ -118,7 +122,7 @@ public class ServiceOperationController {
             // System.out.println("reading");
         }
         byte [] bytes = byteBuffer.array();
-        number = 10000;
+        number = 1000;
         for (int i =2; i < number; i++) {
             String sj= String.valueOf(i);
             for (int j = 0; j < (6-String.valueOf(i).length()); j++) {
@@ -129,5 +133,10 @@ public class ServiceOperationController {
         }
         fileInputStream.close();
         return ;
+    }
+
+    @GetMapping("/red")
+    public String red() throws IOException {
+        return textUtils.readerText(systemConfig.getTextPaht());
     }
 }

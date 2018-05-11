@@ -1,7 +1,9 @@
 package com.megvii.thread;
 
+import com.megvii.configuration.SystemConfig;
 import com.megvii.po.DownloadFileConfig;
 import com.megvii.po.Photo;
+import com.megvii.utlis.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -36,6 +38,9 @@ public class DownloadThreadPool {
 
     private DownloadFileConfig fileConfig = new DownloadFileConfig();
 
+    @Autowired
+    private SystemConfig systemConfig;
+
 
     /**
      * 通过初始化方法创建线程池及下载队列对象
@@ -66,7 +71,7 @@ public class DownloadThreadPool {
      */
     private  void runThread(){
             //向线程池中添加一个执行任务
-            cachedThreadPool.execute(new DownloadHandlerThread(downloadQueue,fileConfig));
+            cachedThreadPool.execute(new DownloadHandlerThread(downloadQueue,fileConfig,systemConfig));
     }
 
     /**
