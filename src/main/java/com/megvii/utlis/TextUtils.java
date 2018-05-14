@@ -24,7 +24,6 @@ public class TextUtils {
         try {
             fileWriter = new FileWriter(textPath,isAppend);
             bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.newLine();
             bufferedWriter.write(context);
             bufferedWriter.flush();
             return true;
@@ -54,6 +53,31 @@ public class TextUtils {
             while (bufferedReader.read() !=-1){
                 count+="\n"+bufferedReader.readLine();
             }
+            return count;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(bufferedReader !=null){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        return "";
+    }
+
+    public String readerOneRowText(String textPath){
+        FileReader fileReader = null;
+
+        BufferedReader bufferedReader =null;
+        try {
+            fileReader = new FileReader(textPath);
+            bufferedReader = new BufferedReader(fileReader);
+            String count = bufferedReader.readLine();
+
             return count;
         } catch (IOException e) {
             e.printStackTrace();

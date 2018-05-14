@@ -18,18 +18,19 @@
 
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
-    SELECT *  FROM (SELECT ROWNUM AS rowno, t.* FROM "photo" t WHERE ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
+    SELECT SFZH,XM,XB,XP,RKSJ_ZYK,MZ,HJ,SJLY
+    FROM (SELECT ROWNUM AS rowno, t.* FROM (select * from "photo" ORDER BY SFZH,RKSJ_ZYK ASC) t WHERE RKSJ_ZYK &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') and  ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
   </select>
 
-  <select id="selectPhotoCount" resultType="java.lang.Integer">
-    SELECT count(SFZH)  FROM "photo"
+  <select id="selectPhotoCount"  resultType="java.lang.Integer">
+    SELECT count(SFZH)  FROM "photo" WHERE RKSJ_ZYK &gt;= to_date(#{date},'yyyy-mm-dd hh24:mi:ss')
   </select>
 
 
 
 
   <insert id="testInsert" parameterType="Map">
-    INSERT INTO "SCOTT"."photo" ("id", "SFZH", "XM", "XB", "XP", "MZ","HJ","RKSJ_ZYK") VALUES (#{id},#{cradId},#{id},'1',#{bytes,jdbcType=BLOB},'汉','shandong',#{changeTiem,jdbcType=DATE})
+    INSERT INTO "SCOTT"."photo" ("id", "SFZH", "XM", "XB", "XP", "MZ","HJ","RKSJ_ZYK") VALUES (#{id},#{cradId},#{id},'1',#{bytes,jdbcType=BLOB},'汉','shandong',to_date(#{changeTiem},'yyyy-mm-dd hh24:mi:ss'))
   </insert>
 
 

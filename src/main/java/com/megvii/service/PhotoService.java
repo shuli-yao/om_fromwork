@@ -2,14 +2,16 @@ package com.megvii.service;
 
 
 import com.megvii.po.Photo;
+import oracle.jdbc.driver.DatabaseError;
 
+import java.util.Date;
 import java.util.List;
 
 public interface PhotoService {
 
-    List<Photo>  findByPhotos(int begin,int end);
+    List<Photo>  findByPhotos(int begin, int end, String date);
 
-    int selectPhotoCount();
+    int selectPhotoCount(String date);
 
     void photoToLoca(Integer queryMaxSize);
 

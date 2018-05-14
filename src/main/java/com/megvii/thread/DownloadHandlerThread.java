@@ -1,5 +1,6 @@
 package com.megvii.thread;
 
+import java.text.SimpleDateFormat;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import com.megvii.configuration.SystemConfig;
@@ -52,9 +53,9 @@ public class DownloadHandlerThread implements Runnable {
                 //民族
                 fileName += (photo.getEthnic()!=null?photo.getEthnic():"none")+"_";
                 //户籍
-                fileName += (photo.getHJ()!=null?photo.getHJ():"none");
+                fileName += (photo.getHJ()!=null?photo.getHJ():"none")+"_";
                 //数据来源
-                fileName += (photo.getDataSource()!=null?photo.getDataSource().substring(0,19):"none")+"_";
+                fileName += (photo.getDataSource()!=null?photo.getDataSource().substring(0,19):"none");
                 //文件后缀
                 fileName += "."+fileConfig.getSuffix();
                 boolean outputResult = fileDownload.outputFile(photo.getPhotoFileData(),
