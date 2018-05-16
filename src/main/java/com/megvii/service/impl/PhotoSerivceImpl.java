@@ -85,38 +85,37 @@ public class PhotoSerivceImpl implements PhotoService{
         int begin = 0;
         int end = queryMaxSize;
 
-        int  putNumbe = 0;
+        int  countNumbe = 0;
+        int  addNumber =0;
+        int  repeatNumber =0;
 
         for (int i = 0; i < whileCount; i++) {
             log.info(queryDate);
             Date beginDate = new Date();
             List<Photo> photos = findByPhotos(begin, end,queryDate);
-            int INunber = 0;
             for (Photo photo : photos) {
-                INunber++;
+
+                countNumbe++;
+
                 if(queryDate.equals(photo.getChangeTime())){
-                    log.info("二、发现一致时间数据，检查是否为新增！");
                     if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
-                        log.info("三、新增数据");
-                        putNumbe++;
+                        addNumber++;
                         downloadThreadPool.putImgUrl(photo);
                         continue;
                     }
-                    System.out.println("三、发现数据已存在不进行新增！");
+                    repeatNumber++;
                 }else{
-                    putNumbe++;
+                    addNumber++;
                     downloadThreadPool.putImgUrl(photo);
                 }
-
-
             }
             Date endDate = new Date();
-            log.info("四、执行第" + (i + 1) + "批数据，执行数量" + INunber + ",耗时" + (endDate.getTime() - beginDate.getTime()));
+            log.info("四、执行第" + (i + 1) + "批数据，查询到数据数量：" + countNumbe + ",已存在数量:"+repeatNumber+",新增数量:"+addNumber+" ,耗时" + (endDate.getTime() - beginDate.getTime()));
             begin = end;
             end = end + queryMaxSize;
         }
-        System.out.println("五、入库数量:"+putNumbe);
-        return putNumbe;
+        System.out.println("五、入库数量:"+addNumber);
+        return addNumber;
     }
 
     @Override

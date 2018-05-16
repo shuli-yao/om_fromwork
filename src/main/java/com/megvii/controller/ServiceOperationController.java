@@ -76,12 +76,30 @@ public class ServiceOperationController {
                     improtState = true;
                     photoService.photoToLoca(systemConfig.getQueryMaxSize());
                 }
+
+
+                //等待队列中数据下载完毕
+                while (true){
+                    if(downloadThreadPool.downloadQueue.size()>0){
+                        log.info("下载队列中还存在数据不进行下一步操作："+downloadThreadPool.downloadQueue.size());
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        continue;
+                    }
+                    break;
+                }
+
                 //---------------------------二阶段 入库阶段-------------------------------------
                 if("1".equals(thisStage)){
                     improtState= false;
                     return;
                 }
                 photoService.shellImprotPhoto(systemConfig.getClearShellName(),systemConfig.getShellPath(),systemConfig.getShellConfigPath());
+
+                photoService.shellImprotPhoto(systemConfig.getImprotShellName(),systemConfig.getShellPath(),systemConfig.getShellConfigPath());
                 improtState= false;
             }
         });
@@ -123,7 +141,12 @@ public class ServiceOperationController {
     }
 
     @PostMapping("/test")
-    public void test(@ApiParam Integer  number) throws IOException {
+    @ApiOperation("测试用接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "beginNumber", value = "新增数量", paramType = "query", required = true),
+            @ApiImplicitParam(name = "EndNumber", value = "=结束数量", paramType = "query", required = true),
+    })
+    public void test(Integer beginNumber,Integer  EndNumber) throws IOException {
         File file = new File("d://ysl.jpg");
 
         FileInputStream fileInputStream = new FileInputStream(file);
@@ -135,8 +158,7 @@ public class ServiceOperationController {
             // System.out.println("reading");
         }
         byte [] bytes = byteBuffer.array();
-        number = 10;
-        for (int i =2; i < number; i++) {
+        for (int i =beginNumber; i < EndNumber; i++) {
             String sj= String.valueOf(i);
             for (int j = 0; j < (6-String.valueOf(i).length()); j++) {
                 sj+="0";
