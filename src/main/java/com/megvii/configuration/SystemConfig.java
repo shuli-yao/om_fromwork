@@ -22,8 +22,35 @@ public class SystemConfig {
     @Value("${shell.config.path}")
     String shellConfigPath;
 
-    @Value("${shell.file.name}")
-    String fileName;
+    @Value("${shell.improt.file.name}")
+    String improtShellName;
 
-    String textPaht= SystemConfig.class.getResource("/").getPath()+".."+File.separator+".."+File.separator+"continuingly.txt";
+    @Value("${shell.clear.file.name}")
+    String clearShellName;
+
+    @Value("${continuingly.text.path}")
+    String textPaht;
+
+    String textFileName = "continuingly.txt";
+
+    String filePath;
+
+    @Value("${photo.download.file.suffix}")
+    String fileSuffix;
+
+   public String getTextFilePaht(){
+        return textPaht+textFileName;
+    }
+
+    public void setJobDownloadFilePath(String jobPhotoFilePath){
+       filePath= jobPhotoFilePath+"job_photo_img";
+    }
+
+
+    //定时器执行状态，防止重复执行，true执行完毕 false正在执行
+    boolean jobExecutionStatus = true;
+
+   //增量执行时定时器入库完成的图像是否删除
+    boolean jobPhotoDelete = true;
+
 }

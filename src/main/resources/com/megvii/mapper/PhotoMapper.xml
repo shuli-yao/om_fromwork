@@ -19,7 +19,7 @@
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
     SELECT SFZH,XM,XB,XP,RKSJ_ZYK,MZ,HJ,SJLY
-    FROM (SELECT ROWNUM AS rowno, t.* FROM (select * from "photo" ORDER BY SFZH,RKSJ_ZYK ASC) t WHERE RKSJ_ZYK &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') and  ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
+    FROM (SELECT ROWNUM AS rowno, t.* FROM (select * from "photo" ORDER BY RKSJ_ZYK,SFZH ASC) t WHERE RKSJ_ZYK &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss') and  ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
   </select>
 
   <select id="selectPhotoCount"  resultType="java.lang.Integer">

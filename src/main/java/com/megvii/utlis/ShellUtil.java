@@ -1,22 +1,25 @@
 package com.megvii.utlis;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 
+@Slf4j
 public class ShellUtil {
 
     public String execute(String shpath,String parameter){
         try {
-            System.out.println("开始执行");
+            log.info("开始执行");
             Process process =null;
             String command1 = "sh "+ shpath+" "+parameter;
             System.out.println(command1);
             process = Runtime.getRuntime().exec(command1);
             process.waitFor();
         } catch (IOException e) {
-            System.out.println("执行失败:"+e);
+            log.error("执行失败:"+e);
             e.printStackTrace();
         } catch (InterruptedException e) {
-            System.out.println("执行失败:"+e);
+            log.error("执行失败:"+e);
             e.printStackTrace();
         }
         return "ok";
@@ -41,7 +44,6 @@ public class ShellUtil {
 
             // 方法阻塞, 等待命令执行完成（成功会返回0）
             process.waitFor();
-
             // 获取命令执行结果, 有两个结果: 正常的输出 和 错误的输出（PS: 子进程的输出就是主进程的输入）
             bufrIn = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
             bufrError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"));

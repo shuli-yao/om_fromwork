@@ -3,6 +3,7 @@ package com.megvii.controller;
 import com.megvii.configuration.SystemConfig;
 import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
+import com.megvii.thread.DownloadHandlerThread;
 import com.megvii.thread.DownloadThreadPool;
 import com.megvii.utlis.ShellUtil;
 import com.megvii.utlis.TextUtils;
@@ -37,6 +38,16 @@ public class ServiceOperationController {
     @Autowired
     SystemConfig systemConfig;
 
+
+    @Value("${photo.download.file.path}")
+    String filePath;
+
+    @Value("${photo.job.download.file.path}")
+    String jobPhotoFilePath;
+
+    @Autowired
+    DownloadThreadPool downloadThreadPool;
+
     //入库状态防止程序执行中，多次点击全量入库
     private  Boolean improtState= false;
 
@@ -44,11 +55,15 @@ public class ServiceOperationController {
 
 
     @PostMapping("/allImprotPhoto")
-    @ApiOperation("执行全量入库操作接口")
+    @ApiOperation("执行全量入库操作接口(执行全量会关闭，定时任务)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "stage", value = "执行阶段: 0.全阶段 1.图片落地阶段 2.入库阶段", paramType = "query",defaultValue = "0"),
     })
     public String allImportPhoto(String stage){
+        systemConfig.setShellConfigPath("");
+        systemConfig.setTimerOnOff(false);
+        //全量存储文件地址
+        systemConfig.setFilePath(filePath);
         if(improtState){
             return "目前全量入库执行尚未结束，请稍后再尝试！";
         }
@@ -61,13 +76,12 @@ public class ServiceOperationController {
                     improtState = true;
                     photoService.photoToLoca(systemConfig.getQueryMaxSize());
                 }
-
                 //---------------------------二阶段 入库阶段-------------------------------------
                 if("1".equals(thisStage)){
                     improtState= false;
                     return;
                 }
-                photoService.shellImprotPhoto(systemConfig.getFileName(),systemConfig.getShellPath(),systemConfig.getShellConfigPath());
+                photoService.shellImprotPhoto(systemConfig.getClearShellName(),systemConfig.getShellPath(),systemConfig.getShellConfigPath());
                 improtState= false;
             }
         });
@@ -82,9 +96,16 @@ public class ServiceOperationController {
     })
     public String openTimeImprot(String onIsOff){
         if("1".equals(onIsOff)){
+            //增量文件地址
+            systemConfig.setJobDownloadFilePath(jobPhotoFilePath);
+            if(systemConfig.getShellConfigPath()==null || systemConfig.getShellConfigPath().equals("")){
+                textUtils.copyChangeTextContext(systemConfig.getShellPath()+"config"+File.separator+"config.toml",23,"PHOTO_PATH = \""+systemConfig.getFilePath()+"\"");
+                systemConfig.setShellConfigPath("."+File.separator+"config"+File.separator+"config_job.toml");
+            }
             systemConfig.setTimerOnOff(true);
             return "打开成功，程序每天会进行自动查询入库操作！";
         }else if("0".equals(onIsOff)){
+            systemConfig.setShellConfigPath("");
             systemConfig.setTimerOnOff(false);
             return "关闭成功，后续程序不会再执行自动入库操作！";
         }
@@ -101,45 +122,63 @@ public class ServiceOperationController {
         return "功能暂未实现";
     }
 
-//    @PostMapping("/test")
-//    public void test(@ApiParam Integer  number) throws IOException {
-//        File file = new File("d://ysl.jpg");
-//
-//        FileInputStream fileInputStream = new FileInputStream(file);
-//        FileChannel fileChannel = null;
-//        fileChannel = fileInputStream.getChannel();
-//        ByteBuffer byteBuffer = ByteBuffer.allocate((int) fileChannel.size());
-//        while ((fileChannel.read(byteBuffer)) > 0) {
-//            // do nothing
-//            // System.out.println("reading");
-//        }
-//        byte [] bytes = byteBuffer.array();
-//        number = 1000;
-//        for (int i =2; i < number; i++) {
-//            String sj= String.valueOf(i);
-//            for (int j = 0; j < (6-String.valueOf(i).length()); j++) {
-//                sj+="0";
-//            }
-//            photoService.testInsert(String.valueOf(i),bytes,"372928199011"+sj);
-//
-//        }
-//        fileInputStream.close();
-//        return ;
-//    }
+    @PostMapping("/test")
+    public void test(@ApiParam Integer  number) throws IOException {
+        File file = new File("d://ysl.jpg");
+
+        FileInputStream fileInputStream = new FileInputStream(file);
+        FileChannel fileChannel = null;
+        fileChannel = fileInputStream.getChannel();
+        ByteBuffer byteBuffer = ByteBuffer.allocate((int) fileChannel.size());
+        while ((fileChannel.read(byteBuffer)) > 0) {
+            // do nothing
+            // System.out.println("reading");
+        }
+        byte [] bytes = byteBuffer.array();
+        number = 10;
+        for (int i =2; i < number; i++) {
+            String sj= String.valueOf(i);
+            for (int j = 0; j < (6-String.valueOf(i).length()); j++) {
+                sj+="0";
+            }
+            photoService.testInsert(String.valueOf(i),bytes,"372928199011"+sj);
+
+        }
+        fileInputStream.close();
+        return ;
+    }
 
     @GetMapping("/getContinuinglyNode")
     @ApiOperation("获取续传或增量的节点信息(上次执行程序最后一条成功的数据的身份证号及时间)")
     public String red() throws IOException {
-        return textUtils.readerText(systemConfig.getTextPaht());
+        return textUtils.readerOneRowText(systemConfig.getTextFilePaht());
     }
 
     @GetMapping("/clearContinuinglyNode")
     @ApiOperation("清除续传节点信息(会重新执行全量入库)")
     public String clearContinuinglyText() {
-        Boolean b = textUtils.writerText(systemConfig.getTextPaht(),"",false);
+        downloadThreadPool.setTime("");
+        Boolean b = textUtils.writerText(systemConfig.getTextFilePaht(),"",false);
         if(b){
             return "清除成功！";
         }
         return "清楚失败";
+    }
+
+    @PostMapping("/isDeletePhotoImg")
+    @ApiOperation("增量执行时，执行完毕人像是否删除(默认删除，防止重复入库)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "noORYes", value = "删除参数:1.删除 0.不删除", paramType = "query", required = true),
+    })
+    public String isDeletePhotoImg(String noORYes){
+        if("1".equals(noORYes)){
+            systemConfig.setJobPhotoDelete(true);
+            return "设置成功";
+        }else if("0".equals(noORYes)){
+            systemConfig.setJobPhotoDelete(false);
+            return "设置成功";
+        }
+        return "抱歉无法分辨您的传入！";
+
     }
 }

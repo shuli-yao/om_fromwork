@@ -2,6 +2,9 @@ package com.megvii.utlis;
 
 
 import java.io.*;
+import java.net.FileNameMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -15,14 +18,20 @@ public class TextUtils {
      * @param context
      * @return
      */
-    public boolean writerText(String textPath,String context,boolean isAppend){
+    public synchronized boolean writerText(String textPath,String context,boolean isAppend){
 
         FileWriter fileWriter = null;
 
         BufferedWriter bufferedWriter =null;
         try {
+            String s = readerOneRowText(textPath);
             fileWriter = new FileWriter(textPath,isAppend);
             bufferedWriter = new BufferedWriter(fileWriter);
+            if(isAppend){
+                if(s!=null|| !"".equals(s)){
+                    bufferedWriter.newLine();
+                }
+            }
             bufferedWriter.write(context);
             bufferedWriter.flush();
             return true;
@@ -41,18 +50,21 @@ public class TextUtils {
         return false;
     }
 
-    public String readerText(String textPath){
+    public List<String> readerText(String textPath){
+
+        List<String> resultList = new ArrayList<>();
         FileReader fileReader = null;
 
         BufferedReader bufferedReader =null;
         try {
             fileReader = new FileReader(textPath);
             bufferedReader = new BufferedReader(fileReader);
-            String count = "";
-            while (bufferedReader.read() !=-1){
-                count+="\n"+bufferedReader.readLine();
+
+            String context = "";
+            while ((context=bufferedReader.readLine())!=null){
+                resultList.add(context);
             }
-            return count;
+            return resultList;
         } catch (IOException e) {
             e.printStackTrace();
         }finally {
@@ -65,7 +77,7 @@ public class TextUtils {
             }
 
         }
-        return "";
+        return resultList;
     }
 
     public String readerOneRowText(String textPath){
@@ -75,8 +87,16 @@ public class TextUtils {
         try {
             fileReader = new FileReader(textPath);
             bufferedReader = new BufferedReader(fileReader);
-            String count = bufferedReader.readLine();
-
+            String count ="";
+            int t =0;
+            while (true){
+                t++;
+                count = bufferedReader.readLine();
+                System.out.println("读取txt"+t+"次，内容:"+count);
+                if(t>=10 || count!=null || !"".equals(count)){
+                    break;
+                }
+            }
             return count;
         } catch (IOException e) {
             e.printStackTrace();
@@ -93,5 +113,48 @@ public class TextUtils {
         return "";
     }
 
+    public  Boolean copyChangeTextContext(String filePath, Integer rowNumber, String replaceContext){
+        FileReader fileReader = null;
 
+        BufferedReader bufferedReader =null;
+
+        PrintWriter out= null;
+        String [] filePaths = filePath.split("\\.");
+        if(filePaths.length <= 1){
+            return false;
+        }
+       String fileJobPath = filePaths [0]+"_job."+filePaths[1];
+
+        try {
+            out= new PrintWriter(new BufferedWriter(new FileWriter(fileJobPath)));
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filePath)), "UTF-8");
+            bufferedReader = new BufferedReader(isr);
+            String context = "";
+            Integer number = 0;
+            while ((context=bufferedReader.readLine())!=null){
+                number++;
+                if(number == rowNumber){
+                    out.println(replaceContext);
+                }else {
+                    out.println(context);
+                }
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(bufferedReader !=null){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(out !=null){
+                out.close();
+            }
+
+        }
+        return true;
+    }
 }

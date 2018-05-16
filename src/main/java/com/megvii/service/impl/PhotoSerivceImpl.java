@@ -9,10 +9,13 @@ import com.megvii.utlis.ShellUtil;
 import com.megvii.utlis.TextUtils;
 import com.sun.javafx.collections.MappingChange;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.smartcardio.Card;
 import java.io.File;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,18 +61,16 @@ public class PhotoSerivceImpl implements PhotoService{
 
 
     @Override
-    public void photoToLoca(Integer queryMaxSize) {
-        log.info("开始执行入库工具，落地图片功能！");
+    public Integer photoToLoca(Integer queryMaxSize) {
+        log.info("一、开始执行入库工具，落地图片功能！");
 
         //--------------------读取txt判断上次上传节点----------------
-        String result= textUtils.readerOneRowText(systemConfig.getTextPaht());
+        String result= textUtils.readerOneRowText(systemConfig.getTextFilePaht());
         String queryDate = "2010-01-01 00:00:00";
         String cardId = "";
         if(result!=null && !result.equals("")){
             String [] results = result.split(",");
             queryDate = results[1];
-            cardId = results[0];
-            ContinuinglyNodeSwitch = false;
             if(queryDate.length()== 10){
                 queryDate=queryDate+" 00:00:00";
             }
@@ -83,28 +84,49 @@ public class PhotoSerivceImpl implements PhotoService{
         //--------------------循环执行数据下载功能----------------
         int begin = 0;
         int end = queryMaxSize;
+
+        int  putNumbe = 0;
+
         for (int i = 0; i < whileCount; i++) {
+            log.info(queryDate);
             Date beginDate = new Date();
             List<Photo> photos = findByPhotos(begin, end,queryDate);
+            int INunber = 0;
             for (Photo photo : photos) {
-                if(ContinuinglyNodeSwitch){
+                INunber++;
+                if(queryDate.equals(photo.getChangeTime())){
+                    log.info("二、发现一致时间数据，检查是否为新增！");
+                    if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
+                        log.info("三、新增数据");
+                        putNumbe++;
+                        downloadThreadPool.putImgUrl(photo);
+                        continue;
+                    }
+                    System.out.println("三、发现数据已存在不进行新增！");
+                }else{
+                    putNumbe++;
                     downloadThreadPool.putImgUrl(photo);
                 }
-                if(ContinuinglyNodeSwitch == false && photo.getCardId().equals(cardId)){
-                    ContinuinglyNodeSwitch =true;
-                }
+
+
             }
             Date endDate = new Date();
-            log.info("执行第" + (i + 1) + "批数据，每批数据最大上限为" + queryMaxSize + ",耗时" + (endDate.getTime() - beginDate.getTime()));
+            log.info("四、执行第" + (i + 1) + "批数据，执行数量" + INunber + ",耗时" + (endDate.getTime() - beginDate.getTime()));
             begin = end;
             end = end + queryMaxSize;
         }
+        System.out.println("五、入库数量:"+putNumbe);
+        return putNumbe;
     }
 
     @Override
     public void shellImprotPhoto(String fileName,String shellPath,String shellConfigPath) {
         log.info("开始执行图片及信息入库功能！");
-        String command = "sh "+ fileName+" "+shellConfigPath;
+
+        String command = "bash "+ fileName;
+        if(shellConfigPath!=null|| !shellConfigPath.equals("")){
+            command +=" "+shellConfigPath;
+        }
         log.info("执行命令："+command);
         try {
             String result =shellUtil.execCmd(command, new File(shellPath));
@@ -124,5 +146,17 @@ public class PhotoSerivceImpl implements PhotoService{
 
         map.put("cradId",cradId);
         photoMapper.testInsert(map);
+    }
+
+
+
+    private boolean compareCardAndTime(String Card, String Time){
+        List<String> readList = textUtils.readerText(systemConfig.getTextFilePaht());
+        for (String s : readList) {
+            if(s.equals(Card+","+Time)) {
+                return false;
+            }
+        }
+       return true;
     }
 }

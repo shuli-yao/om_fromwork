@@ -13,7 +13,7 @@ public interface PhotoService {
 
     int selectPhotoCount(String date);
 
-    void photoToLoca(Integer queryMaxSize);
+    Integer photoToLoca(Integer queryMaxSize);
 
     void shellImprotPhoto(String fileName,String shellPath,String shellConfigPath);
 

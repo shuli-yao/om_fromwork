@@ -1,6 +1,9 @@
 package com.megvii.thread;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import com.megvii.configuration.SystemConfig;
@@ -8,6 +11,7 @@ import com.megvii.po.DownloadFileConfig;
 import com.megvii.po.Photo;
 import com.megvii.utlis.FileDownload;
 import com.megvii.utlis.TextUtils;
+import org.apache.http.client.utils.DateUtils;
 
 /**
  * 执行下载程序线程对象
@@ -19,20 +23,20 @@ public class DownloadHandlerThread implements Runnable {
 
     private ArrayBlockingQueue<Photo> downloadQueue;   //定义下载队列
 
-    private DownloadFileConfig fileConfig;
+    private ArrayBlockingQueue<Photo> textQueue;   //定义写入text队列
 
     private SystemConfig systemConfig;
 
-    TextUtils textUtils = new TextUtils();
+
 
     /**
      * 根据构造方法注入入库线程池对象及下载队列
      * @param downloadQueue
      */
-    DownloadHandlerThread(ArrayBlockingQueue<Photo> downloadQueue,DownloadFileConfig fileConfig,SystemConfig systemConfig){
+    DownloadHandlerThread(ArrayBlockingQueue<Photo> downloadQueue,SystemConfig systemConfig,ArrayBlockingQueue<Photo> textQueue){
         this.downloadQueue = downloadQueue;   //获取到下载队列
-        this.fileConfig = fileConfig;
         this.systemConfig = systemConfig;
+        this.textQueue = textQueue;
     }
 
     @Override
@@ -57,12 +61,10 @@ public class DownloadHandlerThread implements Runnable {
                 //数据来源
                 fileName += (photo.getDataSource()!=null?photo.getDataSource().substring(0,19):"none");
                 //文件后缀
-                fileName += "."+fileConfig.getSuffix();
+                fileName += "."+systemConfig.getFileSuffix();
                 boolean outputResult = fileDownload.outputFile(photo.getPhotoFileData(),
-                        fileName,fileConfig.getFilePath());
-
-                String text = photo.getCardId()+","+photo.getChangeTime();
-                textUtils.writerText(systemConfig.getTextPaht(),text,false);
+                        fileName,systemConfig.getFilePath());
+                textQueue.put(photo);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (Exception e) {
@@ -70,5 +72,9 @@ public class DownloadHandlerThread implements Runnable {
             }
         }
     }
+
+
+
+
 
 }
