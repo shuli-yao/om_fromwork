@@ -92,7 +92,6 @@ public class TextUtils {
             while (true){
                 t++;
                 count = bufferedReader.readLine();
-                System.out.println("读取txt"+t+"次，内容:"+count);
                 if(t>=10 || count!=null || !"".equals(count)){
                     break;
                 }

@@ -31,16 +31,23 @@ public class SystemConfig {
     @Value("${continuingly.text.path}")
     String textPaht;
 
+    @Value("${input.db.table.name}")
+    String inputDbTalbeName;
+
     String textFileName = "continuingly.txt";
+
+    String textQueryPageContext= "queryPage.txt";
 
     String filePath;
 
     @Value("${photo.download.file.suffix}")
     String fileSuffix;
 
-   public String getTextFilePaht(){
+   public String getTextFilePath(){
         return textPaht+textFileName;
     }
+
+    public String getQueryPageContextPath(){return textPaht+textQueryPageContext;}
 
     public void setJobDownloadFilePath(String jobPhotoFilePath){
        filePath= jobPhotoFilePath+"job_photo_img";

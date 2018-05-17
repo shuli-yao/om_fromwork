@@ -3,6 +3,7 @@ package com.megvii.thread;
 import com.megvii.configuration.SystemConfig;
 import com.megvii.po.DownloadFileConfig;
 import com.megvii.po.Photo;
+import com.megvii.utlis.DateUtils;
 import com.megvii.utlis.TextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  *  下载线程池
@@ -43,9 +41,9 @@ public class DownloadThreadPool {
 
     public  ExecutorService cachedThreadPool ;
 
-    public  ArrayBlockingQueue<Photo> downloadQueue;
+    public  LinkedBlockingQueue<Photo> downloadQueue;
 
-    public  ArrayBlockingQueue<Photo> textQueue;
+    public  LinkedBlockingQueue<Photo> textQueue;
 
     private DownloadFileConfig fileConfig = new DownloadFileConfig();
 
@@ -59,11 +57,11 @@ public class DownloadThreadPool {
     @PostConstruct
     public void init(){
 
-        this.downloadQueue = new ArrayBlockingQueue<Photo>(downloadQueueSize); //创建阻塞队列对象
+        this.downloadQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建阻塞队列对象
 
         this.cachedThreadPool = Executors.newFixedThreadPool(poolSize);  //定义线程池
 
-        this.textQueue = new ArrayBlockingQueue<Photo>(downloadQueueSize);
+        this.textQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize);
 
         Thread thread =new Thread(new Runnable() {
             @Override
@@ -80,7 +78,7 @@ public class DownloadThreadPool {
      * 获取阻塞队列方法
      * @return
      */
-    public  ArrayBlockingQueue  getArrayBlockingQueue(){
+    public  LinkedBlockingQueue  getArrayBlockingQueue(){
         return downloadQueue;
     }
 
@@ -112,39 +110,39 @@ public class DownloadThreadPool {
 
     public void writeText(){
         while (true){
-
             try {
                 if(textQueue.size()>0){
-                    log.info("写入text执行中...");
                     Photo photo= textQueue.take();
                     if(photo ==null){
                         continue;
                     }
-                    String text = photo.getCardId()+","+photo.getChangeTime();
-                    if (time == null || "".equals(time) || "big".equals(stringDateCompare(photo.getChangeTime(), time))){
-                        textUtils.writerText(systemConfig.getTextFilePaht(), text, false);
-                        time = photo.getChangeTime();
-                    }else  if (time == null  || "".equals(time) || "etc".equals(stringDateCompare(photo.getChangeTime(), time))){
-                        textUtils.writerText(systemConfig.getTextFilePaht(), text, true);
-                        time = photo.getChangeTime();
-                    }
+
+                    String changeTime = DateUtils.TIMEFORMAT.format(photo.getChangeTime());
+                    String text = photo.getCardId()+","+changeTime;
+                    textUtils.writerText(systemConfig.getTextFilePath(), text, true);
+//                    if (time == null || "".equals(time) || "big".equals(stringDateCompare(changeTime, time))){
+//                        textUtils.writerText(systemConfig.getTextFilePath(), text, false);
+//                        time =changeTime;
+//                    }else  if (time == null  || "".equals(time) || "etc".equals(stringDateCompare(changeTime, time))){
+//                        textUtils.writerText(systemConfig.getTextFilePath(), text, true);
+//                        time =changeTime;
+//                    }
                     continue;
                 }
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 log.info("写入text失败");
             }
-
         }
     }
 
     public String stringDateCompare(String oneDateStr,String twoDateStr){
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         Date oneDate = null;
         Date twoDate = null;
         try {
-            oneDate = dateFormat.parse(oneDateStr);
-            twoDate = dateFormat.parse(twoDateStr);
+            oneDate = DateUtils.TIMEFORMAT.parse(oneDateStr);
+            twoDate = DateUtils.TIMEFORMAT.parse(twoDateStr);
             if (oneDate.getTime() > twoDate.getTime()) {
                 return "big";
             }else if(oneDate.getTime()==twoDate.getTime()){

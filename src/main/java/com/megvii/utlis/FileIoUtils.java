@@ -8,6 +8,9 @@ public class FileIoUtils
         int fileNumebr = 0;
         int failureNumber =0;
         File file = new File(path);
+        if(!file.exists()){
+            return "文件夹不存在";
+        }
         File[] tempList = file.listFiles();
         for (int i = 0; i < tempList.length; i++) {
 

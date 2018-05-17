@@ -42,20 +42,22 @@ public class ShellUtil {
             // 执行命令, 返回一个子进程对象（命令在子进程中执行）
             process = Runtime.getRuntime().exec(cmd, null, dir);
 
-            // 方法阻塞, 等待命令执行完成（成功会返回0）
-            process.waitFor();
             // 获取命令执行结果, 有两个结果: 正常的输出 和 错误的输出（PS: 子进程的输出就是主进程的输入）
             bufrIn = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
             bufrError = new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"));
-
             // 读取输出
             String line = null;
             while ((line = bufrIn.readLine()) != null) {
-                result.append(line).append('\n');
+                log.info(line);
+//                result.append().append('\n');
             }
             while ((line = bufrError.readLine()) != null) {
-                result.append(line).append('\n');
+                log.info(line);
+//                result.append(line).append('\n');
             }
+
+            // 方法阻塞, 等待命令执行完成（成功会返回0）
+            process.waitFor();
 
         } finally {
             closeStream(bufrIn);

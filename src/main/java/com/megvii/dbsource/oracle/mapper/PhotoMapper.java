@@ -11,9 +11,11 @@ import java.util.List;
 
 public interface PhotoMapper {
 
-    List<Photo> selectPhotoByPage(int begin, int end, String date);
+    List<Photo> selectPhotoByPage(int begin, int end, String date,@Param("tableNaem")String tableNaem);
 
-    int selectPhotoCount(@Param("date") String date);
+    List<Photo> selectPhotoByPageNoOrder(int begin, int end, String date,@Param("tableNaem")String tableNaem);
+
+    int selectPhotoCount(@Param("date") String date,@Param("tableNaem")String tableNaem);
 
     void testInsert(Map<String,Object> map);
 }

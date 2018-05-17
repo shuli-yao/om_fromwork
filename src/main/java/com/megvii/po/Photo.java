@@ -15,7 +15,7 @@ public class Photo {
     String cardId;
 
     //数据修改时间
-    String changeTime;
+    Date changeTime;
 
     //性别
     String sex;

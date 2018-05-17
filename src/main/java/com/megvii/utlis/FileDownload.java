@@ -45,10 +45,13 @@ public class FileDownload {
      * @return
      */
     public   boolean outputFile(byte [] bytes,String fileName,String filePath) {
-        BufferedOutputStream bufferedOutputStream = null; 
+        BufferedOutputStream bufferedOutputStream = null;
         OutputStream outputStream =null;
         try {
             isPathExit(filePath);
+            if(new File(filePath+File.separator+fileName).exists()){
+                return true;
+            }
             outputStream = new FileOutputStream(filePath+File.separator+fileName);
             bufferedOutputStream = new BufferedOutputStream(outputStream);
             bufferedOutputStream.write(bytes,0,bytes.length);
@@ -62,16 +65,19 @@ public class FileDownload {
             if(bufferedOutputStream!=null){
                 try {
                     bufferedOutputStream.close();
-                   
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
             try {
-				outputStream.close();
-			} catch (Exception e2) {
-				e2.printStackTrace();
-			}
+                if(outputStream!=null){
+                    outputStream.close();
+                }
+
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
         }
         return false;
     }

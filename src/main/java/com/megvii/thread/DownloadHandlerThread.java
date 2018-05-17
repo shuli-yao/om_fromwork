@@ -1,17 +1,11 @@
 package com.megvii.thread;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.ArrayBlockingQueue;
-
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import com.megvii.configuration.SystemConfig;
-import com.megvii.po.DownloadFileConfig;
 import com.megvii.po.Photo;
 import com.megvii.utlis.FileDownload;
-import com.megvii.utlis.TextUtils;
-import org.apache.http.client.utils.DateUtils;
 
 /**
  * 执行下载程序线程对象
@@ -21,19 +15,20 @@ public class DownloadHandlerThread implements Runnable {
 
     private FileDownload fileDownload = new FileDownload(); //定义文件下载对象
 
-    private ArrayBlockingQueue<Photo> downloadQueue;   //定义下载队列
+    private LinkedBlockingQueue<Photo> downloadQueue;   //定义下载队列
 
-    private ArrayBlockingQueue<Photo> textQueue;   //定义写入text队列
+    private LinkedBlockingQueue<Photo> textQueue;   //定义写入text队列
 
     private SystemConfig systemConfig;
 
 
+    private final Lock queueLock=new ReentrantLock();
 
     /**
      * 根据构造方法注入入库线程池对象及下载队列
      * @param downloadQueue
      */
-    DownloadHandlerThread(ArrayBlockingQueue<Photo> downloadQueue,SystemConfig systemConfig,ArrayBlockingQueue<Photo> textQueue){
+    DownloadHandlerThread(LinkedBlockingQueue<Photo> downloadQueue,SystemConfig systemConfig,LinkedBlockingQueue<Photo> textQueue){
         this.downloadQueue = downloadQueue;   //获取到下载队列
         this.systemConfig = systemConfig;
         this.textQueue = textQueue;
@@ -47,15 +42,24 @@ public class DownloadHandlerThread implements Runnable {
             Photo photo = null;
             try {
                 //2.获取下载对象
-                photo = downloadQueue.take();
+                synchronized (downloadQueue){
+                    photo = downloadQueue.take();
+                    downloadQueue.remove(photo);
+                }
                 //姓名
                 String fileName = (photo.getName()!=null?photo.getName():"none")+"_";
                 //身份证号
                 fileName += (photo.getCardId()!=null?photo.getCardId():"none")+"_";
                 //性别
-                fileName += (photo.getSex()!=null?photo.getSex():"none")+"_";
+                if(photo.getSex()==null || "".equals(photo.getSex()) || !"2".equals(photo.getSex()) || !"1".equals(photo.getSex())){
+                    fileName +="none"+"_";
+                }else if("2".equals(photo.getSex())){
+                    fileName += "female"+"_";
+                }else if("1".equals(photo.getSex())){
+                    fileName += "male"+"_";
+                }
                 //民族
-                fileName += (photo.getEthnic()!=null?photo.getEthnic():"none")+"_";
+                fileName +="none_";
                 //户籍
                 fileName += (photo.getHJ()!=null?photo.getHJ():"none")+"_";
                 //数据来源

@@ -5,17 +5,14 @@ import com.megvii.dbsource.oracle.mapper.PhotoMapper;
 import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
 import com.megvii.thread.DownloadThreadPool;
+import com.megvii.utlis.DateUtils;
 import com.megvii.utlis.ShellUtil;
 import com.megvii.utlis.TextUtils;
-import com.sun.javafx.collections.MappingChange;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.smartcardio.Card;
 import java.io.File;
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,22 +47,24 @@ public class PhotoSerivceImpl implements PhotoService{
 
     @Override
     public List<Photo> findByPhotos(int begin,int end,String date) {
-        return photoMapper.selectPhotoByPage(begin,end,date);
+        return photoMapper.selectPhotoByPage(begin,end,date,systemConfig.getInputDbTalbeName());
+    }
+
+    public List<Photo> findByPhotosNoOrder(int begin,int end,String date) {
+        return photoMapper.selectPhotoByPage(begin,end,date,systemConfig.getInputDbTalbeName());
     }
 
     @Override
     public int selectPhotoCount(String date) {
-        return photoMapper.selectPhotoCount(date);
+        return photoMapper.selectPhotoCount(date,systemConfig.getInputDbTalbeName());
     }
-
-
 
     @Override
     public Integer photoToLoca(Integer queryMaxSize) {
         log.info("一、开始执行入库工具，落地图片功能！");
 
         //--------------------读取txt判断上次上传节点----------------
-        String result= textUtils.readerOneRowText(systemConfig.getTextFilePaht());
+        String result= textUtils.readerOneRowText(systemConfig.getTextFilePath());
         String queryDate = "2010-01-01 00:00:00";
         String cardId = "";
         if(result!=null && !result.equals("")){
@@ -75,12 +74,6 @@ public class PhotoSerivceImpl implements PhotoService{
                 queryDate=queryDate+" 00:00:00";
             }
         }
-
-        //--------------------获取总数并进行切割判断需要执行多少次分页查询----------------
-        int count = selectPhotoCount(queryDate);
-        int whileCount = count%queryMaxSize==0?count/queryMaxSize:count/queryMaxSize+1 ;
-//        int whileCount =5;
-
         //--------------------循环执行数据下载功能----------------
         int begin = 0;
         int end = queryMaxSize;
@@ -89,17 +82,16 @@ public class PhotoSerivceImpl implements PhotoService{
         int  addNumber =0;
         int  repeatNumber =0;
 
-        for (int i = 0; i < whileCount; i++) {
+        int i = 0;
+        while (true){
+            i++;
             log.info(queryDate);
             Date beginDate = new Date();
-            List<Photo> photos = findByPhotos(begin, end,queryDate);
+            List<Photo> photos = findByPhotosNoOrder(begin,end,queryDate);
             for (Photo photo : photos) {
-
                 countNumbe++;
-
                 if(queryDate.equals(photo.getChangeTime())){
                     if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
-                        addNumber++;
                         downloadThreadPool.putImgUrl(photo);
                         continue;
                     }
@@ -113,9 +105,38 @@ public class PhotoSerivceImpl implements PhotoService{
             log.info("四、执行第" + (i + 1) + "批数据，查询到数据数量：" + countNumbe + ",已存在数量:"+repeatNumber+",新增数量:"+addNumber+" ,耗时" + (endDate.getTime() - beginDate.getTime()));
             begin = end;
             end = end + queryMaxSize;
+            if(photos.size()< queryMaxSize){
+                break;
+            }
         }
         System.out.println("五、入库数量:"+addNumber);
         return addNumber;
+    }
+
+    /**
+     * 分批入库方法
+     * @param
+     * @return
+     */
+    @Override
+    public Integer photoPartialToLoca(Integer beginNumber,Integer sizeNumber,String date,Integer topBeginNumber) {
+        Date queryDate = new Date();
+        List<Photo> photos = findByPhotosNoOrder(beginNumber,sizeNumber,date);
+        Date endDate = new Date();
+        log.info("查询时间为："+(endDate.getTime()-queryDate.getTime())+"ms");
+        for (Photo photo : photos) {
+            downloadThreadPool.putImgUrl(photo);
+            //判断如果两次一致，为防止重复进入判断状态
+            if(beginNumber == topBeginNumber){
+                if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
+                    downloadThreadPool.putImgUrl(photo);
+                    continue;
+                }
+                continue;
+            }
+            downloadThreadPool.putImgUrl(photo);
+        }
+        return photos.size();
     }
 
     @Override
@@ -140,19 +161,29 @@ public class PhotoSerivceImpl implements PhotoService{
         Map<String,Object> map = new HashMap<>();
         map.put("id",id);
         map.put("bytes",bytes);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         map.put("changeTiem",simpleDateFormat.format(new Date()));
-
+        map.put("tableName",systemConfig.getInputDbTalbeName());
         map.put("cradId",cradId);
         photoMapper.testInsert(map);
     }
 
+    @Override
+    public String checkPhotoImport(Integer end) {
+        String queryDate = "2010/01/01 00:00:00";
+        List<Photo> photos = findByPhotos(0, end,queryDate);
+        for (Photo photo : photos) {
+            downloadThreadPool.putImgUrl(photo);
+        }
+        return "";
+    }
 
 
-    private boolean compareCardAndTime(String Card, String Time){
-        List<String> readList = textUtils.readerText(systemConfig.getTextFilePaht());
+        private boolean compareCardAndTime(String Card, Date Time){
+
+        List<String> readList = textUtils.readerText(systemConfig.getTextFilePath());
         for (String s : readList) {
-            if(s.equals(Card+","+Time)) {
+            if(s.equals(Card+","+DateUtils.TIMEFORMAT.format(Time))) {
                 return false;
             }
         }
