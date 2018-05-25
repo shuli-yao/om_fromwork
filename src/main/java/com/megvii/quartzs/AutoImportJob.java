@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
+
 @Component
 @Slf4j
 public class AutoImportJob {
@@ -19,8 +21,6 @@ public class AutoImportJob {
 
     @Autowired
     PhotoService photoService;
-
-
 
     @Autowired
     DownloadThreadPool downloadThreadPool;
@@ -43,6 +43,7 @@ public class AutoImportJob {
                     return;
                 }
                 systemConfig.setJobExecutionStatus(false);
+                systemConfig.setImprotType("job");
                 //执行下载任务
                 int downloadNumber = photoService.photoToLoca(systemConfig.getQueryMaxSize());
                 if (downloadNumber == 0) {
@@ -68,9 +69,11 @@ public class AutoImportJob {
 
                 if (systemConfig.isJobPhotoDelete()) {
                     //执行删除列表下图片任务
-                    String result = fileIoUtils.deleteFile(systemConfig.getFilePath());
-                    log.info(result);
+//                    String result = fileIoUtils.deleteFile(systemConfig.getFilePath());
+//                    log.info(result);
                 }
+            } catch (ParseException e) {
+                e.printStackTrace();
             } finally {
                 systemConfig.setJobExecutionStatus(true);
             }

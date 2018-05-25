@@ -5,6 +5,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import com.megvii.configuration.SystemConfig;
 import com.megvii.po.Photo;
+import com.megvii.service.PhotoService;
 import com.megvii.utlis.FileDownload;
 
 /**
@@ -21,6 +22,8 @@ public class DownloadHandlerThread implements Runnable {
 
     private SystemConfig systemConfig;
 
+    private PhotoService photoService;
+
 
     private final Lock queueLock=new ReentrantLock();
 
@@ -28,10 +31,11 @@ public class DownloadHandlerThread implements Runnable {
      * 根据构造方法注入入库线程池对象及下载队列
      * @param downloadQueue
      */
-    DownloadHandlerThread(LinkedBlockingQueue<Photo> downloadQueue,SystemConfig systemConfig,LinkedBlockingQueue<Photo> textQueue){
+    DownloadHandlerThread(LinkedBlockingQueue<Photo> downloadQueue,SystemConfig systemConfig,LinkedBlockingQueue<Photo> textQueue,PhotoService photoService){
         this.downloadQueue = downloadQueue;   //获取到下载队列
         this.systemConfig = systemConfig;
         this.textQueue = textQueue;
+        this.photoService = photoService;
     }
 
     @Override
@@ -45,6 +49,11 @@ public class DownloadHandlerThread implements Runnable {
                 synchronized (downloadQueue){
                     photo = downloadQueue.take();
                     downloadQueue.remove(photo);
+                }
+                byte [] dataSource = photoService.findDataByCardId(photo.getCardId());
+                if(dataSource ==null){
+                    System.out.println("身份证号："+photo.getCardId()+"未查出数据不进行下载！");
+                    return;
                 }
                 //姓名
                 String fileName = (photo.getName()!=null?photo.getName():"none")+"_";
@@ -66,7 +75,7 @@ public class DownloadHandlerThread implements Runnable {
                 fileName += (photo.getDataSource()!=null?photo.getDataSource().substring(0,19):"none");
                 //文件后缀
                 fileName += "."+systemConfig.getFileSuffix();
-                boolean outputResult = fileDownload.outputFile(photo.getPhotoFileData(),
+                boolean outputResult = fileDownload.outputFile(dataSource,
                         fileName,systemConfig.getFilePath());
                 textQueue.put(photo);
             } catch (InterruptedException e) {

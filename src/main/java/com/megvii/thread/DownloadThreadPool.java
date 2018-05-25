@@ -3,6 +3,7 @@ package com.megvii.thread;
 import com.megvii.configuration.SystemConfig;
 import com.megvii.po.DownloadFileConfig;
 import com.megvii.po.Photo;
+import com.megvii.service.PhotoService;
 import com.megvii.utlis.DateUtils;
 import com.megvii.utlis.TextUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,8 @@ public class DownloadThreadPool {
     @Autowired
     private SystemConfig systemConfig;
 
+    @Autowired
+    private PhotoService photoService;
 
     /**
      * 通过初始化方法创建线程池及下载队列对象
@@ -87,7 +90,7 @@ public class DownloadThreadPool {
      */
     private  void runThread(){
             //向线程池中添加一个执行任务
-            cachedThreadPool.execute(new DownloadHandlerThread(downloadQueue,systemConfig,textQueue));
+            cachedThreadPool.execute(new DownloadHandlerThread(downloadQueue,systemConfig,textQueue,photoService));
     }
 
     /**
@@ -116,17 +119,24 @@ public class DownloadThreadPool {
                     if(photo ==null){
                         continue;
                     }
-
                     String changeTime = DateUtils.TIMEFORMAT.format(photo.getChangeTime());
                     String text = photo.getCardId()+","+changeTime;
-                    textUtils.writerText(systemConfig.getTextFilePath(), text, true);
-//                    if (time == null || "".equals(time) || "big".equals(stringDateCompare(changeTime, time))){
-//                        textUtils.writerText(systemConfig.getTextFilePath(), text, false);
-//                        time =changeTime;
-//                    }else  if (time == null  || "".equals(time) || "etc".equals(stringDateCompare(changeTime, time))){
-//                        textUtils.writerText(systemConfig.getTextFilePath(), text, true);
-//                        time =changeTime;
-//                    }
+
+                    if("all".equals(systemConfig.getImprotType())){
+
+                        textUtils.writerText(systemConfig.getTextFilePath(), text, true);
+
+                    } if("job".equals(systemConfig.getImprotType())){
+
+                        if (time == null || "".equals(time) || "big".equals(stringDateCompare(changeTime, time))){
+                            textUtils.writerText(systemConfig.getTextFilePath(), text, false);
+                            time =changeTime;
+                        }else  if (time == null  || "".equals(time) || "etc".equals(stringDateCompare(changeTime, time))){
+                            textUtils.writerText(systemConfig.getTextFilePath(), text, true);
+                            time =changeTime;
+                        }
+                    }
+
                     continue;
                 }
                 Thread.sleep(5000);

@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.sql.Blob;
 import java.sql.Date;
+import java.sql.Timestamp;
 
 @Data
 public class Photo {
@@ -15,13 +16,13 @@ public class Photo {
     String cardId;
 
     //数据修改时间
-    Date changeTime;
+    Timestamp changeTime;
 
     //性别
     String sex;
 
     //照片数据
-    byte[] photoFileData;
+//    byte[] photoFileData;
 
     //民族
     String ethnic;

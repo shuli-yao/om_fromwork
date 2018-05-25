@@ -60,4 +60,6 @@ public class SystemConfig {
    //增量执行时定时器入库完成的图像是否删除
     boolean jobPhotoDelete = true;
 
+    //入库类型，全量（all）和增量(job)两种
+    String improtType="all";
 }

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,7 +52,7 @@ public class PhotoSerivceImpl implements PhotoService{
     }
 
     public List<Photo> findByPhotosNoOrder(int begin,int end,String date) {
-        return photoMapper.selectPhotoByPage(begin,end,date,systemConfig.getInputDbTalbeName());
+        return photoMapper.selectPhotoByPageNoOrder(begin,end,date,systemConfig.getInputDbTalbeName());
     }
 
     @Override
@@ -60,12 +61,12 @@ public class PhotoSerivceImpl implements PhotoService{
     }
 
     @Override
-    public Integer photoToLoca(Integer queryMaxSize) {
+    public Integer photoToLoca(Integer queryMaxSize) throws ParseException {
         log.info("一、开始执行入库工具，落地图片功能！");
 
         //--------------------读取txt判断上次上传节点----------------
         String result= textUtils.readerOneRowText(systemConfig.getTextFilePath());
-        String queryDate = "2010-01-01 00:00:00";
+        String queryDate = "2010/01/01 00:00:00";
         String cardId = "";
         if(result!=null && !result.equals("")){
             String [] results = result.split(",");
@@ -83,15 +84,18 @@ public class PhotoSerivceImpl implements PhotoService{
         int  repeatNumber =0;
 
         int i = 0;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         while (true){
             i++;
             log.info(queryDate);
             Date beginDate = new Date();
-            List<Photo> photos = findByPhotosNoOrder(begin,end,queryDate);
+            List<Photo> photos = findByPhotos(begin,end,queryDate);
             for (Photo photo : photos) {
                 countNumbe++;
-                if(queryDate.equals(photo.getChangeTime())){
+                Date queryDateTime = sdf.parse(queryDate);
+                if((queryDateTime.getTime()- photo.getChangeTime().getTime()) ==0){
                     if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
+                        addNumber++;
                         downloadThreadPool.putImgUrl(photo);
                         continue;
                     }
@@ -120,23 +124,55 @@ public class PhotoSerivceImpl implements PhotoService{
      */
     @Override
     public Integer photoPartialToLoca(Integer beginNumber,Integer sizeNumber,String date,Integer topBeginNumber) {
+        int allNumber  = 0;
+        Integer ysBeginNumber = beginNumber;
+        int chaifenNumber = (sizeNumber.intValue()-beginNumber.intValue())/10;
+        int queryEndNumber =beginNumber+chaifenNumber;
+        for (int i = 0; i < 10; i++) {
+            Date queryDate = new Date();
+            log.info("数据起止"+beginNumber+","+queryEndNumber);
+            List<Photo> photos = findByPhotosNoOrder(beginNumber,queryEndNumber,date);
+
+            Date endDate = new Date();
+            log.info("查询时间为："+(endDate.getTime()-queryDate.getTime())+"ms");
+            for (Photo photo : photos) {
+                //判断如果两次一致，为防止重复进入判断状态
+                if(ysBeginNumber.intValue() == topBeginNumber.intValue()){
+                    if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
+                        downloadThreadPool.putImgUrl(photo);
+                        continue;
+                    }
+                    continue;
+                }
+                downloadThreadPool.putImgUrl(photo);
+            }
+            allNumber =allNumber+photos.size();
+            beginNumber=queryEndNumber;
+            queryEndNumber=queryEndNumber+chaifenNumber;
+        }
+        log.info("返回数据条数："+allNumber);
+        return allNumber;
+    }
+
+    @Override
+    public Integer XDBPhotoToLoac(Integer beginNumber, Integer sizeNumber, String date,Integer topBeginNumber) {
+
         Date queryDate = new Date();
-        List<Photo> photos = findByPhotosNoOrder(beginNumber,sizeNumber,date);
+        log.info("数据起止"+beginNumber+","+sizeNumber.intValue());
+        List<Photo> photos = findByPhotosNoOrder(beginNumber,sizeNumber.intValue(),date);
         Date endDate = new Date();
         log.info("查询时间为："+(endDate.getTime()-queryDate.getTime())+"ms");
         for (Photo photo : photos) {
-            downloadThreadPool.putImgUrl(photo);
             //判断如果两次一致，为防止重复进入判断状态
-            if(beginNumber == topBeginNumber){
-                if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
-                    downloadThreadPool.putImgUrl(photo);
-                    continue;
-                }
-                continue;
-            }
             downloadThreadPool.putImgUrl(photo);
         }
         return photos.size();
+    }
+
+    @Override
+    public byte[] findDataByCardId(String cardId) {
+        byte [] data = photoMapper.selectPhotoByCardId(cardId,systemConfig.getInputDbTalbeName()).get(0).getPhotoFileData();
+        return data;
     }
 
     @Override
@@ -184,6 +220,7 @@ public class PhotoSerivceImpl implements PhotoService{
         List<String> readList = textUtils.readerText(systemConfig.getTextFilePath());
         for (String s : readList) {
             if(s.equals(Card+","+DateUtils.TIMEFORMAT.format(Time))) {
+                System.out.println("比对开始:"+s+"  库："+Card+","+DateUtils.TIMEFORMAT.format(Time));
                 return false;
             }
         }

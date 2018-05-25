@@ -3,6 +3,7 @@ package com.megvii.service;
 
 import com.megvii.po.Photo;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -12,9 +13,13 @@ public interface PhotoService {
 
     int selectPhotoCount(String date);
 
-    Integer photoToLoca(Integer queryMaxSize);
+    Integer photoToLoca(Integer queryMaxSize) throws ParseException;
 
     Integer photoPartialToLoca(Integer beginNumber,Integer sizeNumber,String date,Integer topEndNumber);
+
+    Integer XDBPhotoToLoac(Integer beginNumber,Integer sizeNumber,String date,Integer topEndNumber);
+
+    byte [] findDataByCardId(String cardId);
 
     void shellImprotPhoto(String fileName,String shellPath,String shellConfigPath);
 

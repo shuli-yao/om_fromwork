@@ -20,6 +20,7 @@
     <property name="logging.access.encoder.pattern" value='${logging.access.encoder.pattern:-%i{ClientIp} %h %l %u [%t] "%r" %s %b "%i{Referer}" "%i{User-Agent}" %i{x-ssl-header}}' />
     <property name="logging.access.debug.encoder.pattern" value='${logging.access.debug.encoder.pattern:-%i{ClientIp} %h %l %u [%t] "%r" %s %b "%i{Referer}" "%i{User-Agent}" %i{x-ssl-header} %n======&gt;%n%fullRequest%n&lt;======%n%fullResponse}' />
     <property name="logging.access.debug.uri.prefix" value="${logging.access.debug.uri.prefix:-/}" />
+    <property name="logging.file.max.history" value="${logging.file.max.history:2}" />
 
     <if condition='"true".equals(property("logging.appender.console.enabled"))'>
         <then>
@@ -49,6 +50,7 @@
                 <file>${logging.access_log_file_path}</file>
                 <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <fileNamePattern>${logging.access_log_file_path}-%d{yyyy-MM-dd}/%d{yyyy-MM-dd}.%i.access.log</fileNamePattern>
+                    <maxHistory>logging.file.max.history</maxHistory>
                     <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                         <maxFileSize>${logging.file.max.size}</maxFileSize>
                     </timeBasedFileNamingAndTriggeringPolicy>

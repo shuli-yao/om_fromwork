@@ -7,19 +7,22 @@
     <result column="SFZH" jdbcType="VARCHAR" property="cardId"/>
     <result column="RKSJ_ZYK" jdbcType="DATE" property="changeTime"/>
     <result column="XB" jdbcType="VARCHAR" property="sex"/>
-    <result column="XP" jdbcType="BLOB" property="photoFileData"/>
+    <!--<result column="XP" jdbcType="BLOB" property="photoFileData"/>-->
     <result column="MZ" jdbcType="VARCHAR" property="ethnic"/>
     <result column="HJ" jdbcType="VARCHAR" property="HJ"/>
     <result column="SJLY" jdbcType="VARCHAR" property="dataSource"/>
   </resultMap>
 
-
-
-
+  <resultMap id="DataReusltMap" type="com.megvii.po.Data">
+    <result column="XP" jdbcType="BLOB" property="photoFileData"/>
+  </resultMap>
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
-    SELECT SFZH,XM,XB,XP,RKSJ_ZYK,MZ,HJ,SJLY
-    FROM (SELECT ROWNUM AS rowno, t.* FROM (select * from ${tableNaem} ORDER BY RKSJ_ZYK,SFZH ASC) t WHERE RKSJ_ZYK &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss') and  ROWNUM  &lt;= #{1}) table_alias WHERE table_alias.rowno  &gt; #{0}
+    SELECT * FROM
+    ( SELECT A.*, ROWNUM RN
+    FROM (select * from (select * from ${tableNaem} where RKSJ_ZYK >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY RKSJ_ZYK,SFZH  asc) A
+    WHERE ROWNUM &lt;=#{1} )
+    WHERE RN &gt;  #{0}
   </select>
 
   <select id="selectPhotoByPageNoOrder" resultMap="BaseResultMap">
@@ -35,6 +38,11 @@
     SELECT count(SFZH)  FROM ${tableNaem} WHERE RKSJ_ZYK &gt;= to_date(#{date},'yyyy/mm/dd hh24:mi:ss')
   </select>
 
+
+
+  <select id="selectPhotoByCardId" resultMap="DataReusltMap">
+    select XP from ${tableNaem} where SFZH = '${cardId}'
+  </select>
 
 
 
