@@ -9,6 +9,9 @@ import java.sql.Timestamp;
 @Data
 public class Photo {
 
+    //ID
+    String id;
+
     //名称
     String name;
 
@@ -17,6 +20,9 @@ public class Photo {
 
     //数据修改时间
     Timestamp changeTime;
+
+    //创建时间
+    Timestamp createTime;
 
     //性别
     String sex;

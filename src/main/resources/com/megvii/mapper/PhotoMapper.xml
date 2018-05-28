@@ -5,22 +5,19 @@
   <resultMap id="BaseResultMap" type="com.megvii.po.Photo">
     <result column="XM" jdbcType="VARCHAR" property="name"/>
     <result column="SFZH" jdbcType="VARCHAR" property="cardId"/>
-    <result column="RKSJ_ZYK" jdbcType="DATE" property="changeTime"/>
-    <result column="XB" jdbcType="VARCHAR" property="sex"/>
-    <!--<result column="XP" jdbcType="BLOB" property="photoFileData"/>-->
-    <result column="MZ" jdbcType="VARCHAR" property="ethnic"/>
-    <result column="HJ" jdbcType="VARCHAR" property="HJ"/>
-    <result column="SJLY" jdbcType="VARCHAR" property="dataSource"/>
+    <result column="RKSJ" jdbcType="DATE" property="createTime"/>
+    <result column="TAB_ID" jdbcType="VARCHAR" property="id"/>
+    <result column="ZHBGSJ" jdbcType="VARCHAR" property="changeTime"/>
   </resultMap>
 
   <resultMap id="DataReusltMap" type="com.megvii.po.Data">
-    <result column="XP" jdbcType="BLOB" property="photoFileData"/>
+    <result column="PHTO" jdbcType="BLOB" property="photoFileData"/>
   </resultMap>
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
     SELECT * FROM
     ( SELECT A.*, ROWNUM RN
-    FROM (select * from (select * from ${tableNaem} where RKSJ_ZYK >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY RKSJ_ZYK,SFZH  asc) A
+    FROM (select * from (select * from ${tableNaem} where RKSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY RKSJ,SFZH  asc) A
     WHERE ROWNUM &lt;=#{1} )
     WHERE RN &gt;  #{0}
   </select>
@@ -28,20 +25,20 @@
   <select id="selectPhotoByPageNoOrder" resultMap="BaseResultMap">
     SELECT * FROM
     ( SELECT A.*, ROWNUM RN
-    FROM (SELECT * FROM ${tableNaem} where RKSJ_ZYK &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) A
+    FROM (SELECT * FROM ${tableNaem} where RKSJ &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) A
     WHERE ROWNUM &lt;=#{1} )
     WHERE RN &gt;  #{0}
   </select>
 
 
   <select id="selectPhotoCount"  resultType="java.lang.Integer">
-    SELECT count(SFZH)  FROM ${tableNaem} WHERE RKSJ_ZYK &gt;= to_date(#{date},'yyyy/mm/dd hh24:mi:ss')
+    SELECT count(SFZH)  FROM ${tableNaem} WHERE RKSJ &gt;= to_date(#{date},'yyyy/mm/dd hh24:mi:ss')
   </select>
 
 
 
   <select id="selectPhotoByCardId" resultMap="DataReusltMap">
-    select XP from ${tableNaem} where SFZH = '${cardId}'
+    select PHTO from ${tableNaem} where SFZH = '${cardId}'
   </select>
 
 
