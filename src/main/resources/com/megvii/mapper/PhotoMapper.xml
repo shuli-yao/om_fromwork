@@ -17,7 +17,7 @@
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
     SELECT * FROM
     ( SELECT A.*, ROWNUM RN
-    FROM (select * from (select * from ${tableNaem} where RKSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY RKSJ,SFZH  asc) A
+    FROM (select * from (select * from ${tableNaem} where ZHBGSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY ZHBGSJ,SFZH  asc) A
     WHERE ROWNUM &lt;=#{1} )
     WHERE RN &gt;  #{0}
   </select>
@@ -25,7 +25,7 @@
   <select id="selectPhotoByPageNoOrder" resultMap="BaseResultMap">
     SELECT * FROM
     ( SELECT A.*, ROWNUM RN
-    FROM (SELECT * FROM ${tableNaem} where RKSJ &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) A
+    FROM (SELECT * FROM ${tableNaem} where ZHBGSJ &gt;= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss') ORDER BY ZHBGSJ,SFZH  asc) A
     WHERE ROWNUM &lt;=#{1} )
     WHERE RN &gt;  #{0}
   </select>

@@ -89,10 +89,11 @@ public class TextUtils {
             bufferedReader = new BufferedReader(fileReader);
             String count ="";
             int t =0;
-            while (true){
+            while(true){
                 t++;
                 count = bufferedReader.readLine();
-                if(t>=10 || count!=null || !"".equals(count)){
+                if(t>=10 || !"".equals(count)){
+                    System.out.println("结束");
                     break;
                 }
             }
