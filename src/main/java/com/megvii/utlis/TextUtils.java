@@ -92,7 +92,7 @@ public class TextUtils {
             while (true){
                 t++;
                 count = bufferedReader.readLine();
-                if(t>=10 || count!=null || !"".equals(count)){
+                if(t>=10 || !"".equals(count)){
                     break;
                 }
             }

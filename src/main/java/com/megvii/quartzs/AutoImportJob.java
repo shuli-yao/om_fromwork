@@ -69,8 +69,8 @@ public class AutoImportJob {
 
                 if (systemConfig.isJobPhotoDelete()) {
                     //执行删除列表下图片任务
-//                    String result = fileIoUtils.deleteFile(systemConfig.getFilePath());
-//                    log.info(result);
+                    String result = fileIoUtils.deleteFile(systemConfig.getFilePath());
+                    log.info(result);
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
