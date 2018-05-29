@@ -2,6 +2,7 @@ package com.megvii.service.impl;
 
 import com.megvii.configuration.SystemConfig;
 import com.megvii.dbsource.oracle.mapper.PhotoMapper;
+import com.megvii.po.Data;
 import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
 import com.megvii.thread.DownloadThreadPool;
@@ -156,10 +157,10 @@ public class PhotoSerivceImpl implements PhotoService{
 
     @Override
     public Integer XDBPhotoToLoac(Integer beginNumber, Integer sizeNumber, String date,Integer topBeginNumber) {
-
         Date queryDate = new Date();
         log.info("数据起止"+beginNumber+","+sizeNumber.intValue());
         List<Photo> photos = findByPhotosNoOrder(beginNumber,sizeNumber.intValue(),date);
+        log.info("查出数据："+photos.size()+"条");
         Date endDate = new Date();
         log.info("查询时间为："+(endDate.getTime()-queryDate.getTime())+"ms");
         for (Photo photo : photos) {
@@ -171,7 +172,11 @@ public class PhotoSerivceImpl implements PhotoService{
 
     @Override
     public byte[] findDataByCardId(String cardId) {
-        byte [] data = photoMapper.selectPhotoByCardId(cardId,systemConfig.getInputDbTalbeName()).get(0).getPhotoFileData();
+        byte [] data = null;
+        List<Data> dataList = photoMapper.selectPhotoByCardId(cardId,systemConfig.getInputDbTalbeName());
+        if(dataList !=null && dataList.size() > 0){
+            data =dataList.get(0).getPhotoFileData();
+        }
         return data;
     }
 
