@@ -15,11 +15,7 @@
   </resultMap>
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
-    SELECT * FROM
-    ( SELECT A.*, ROWNUM RN
-    FROM (select * from (select * from ${tableNaem} where ZHBGSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')) ORDER BY ZHBGSJ,SFZH  asc) A
-    WHERE ROWNUM &lt;=#{1} )
-    WHERE RN &gt;  #{0}
+      select * from ${tableNaem} where ZHBGSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')
   </select>
 
   <select id="selectPhotoByPageNoOrder" resultMap="BaseResultMap">
