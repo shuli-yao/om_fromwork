@@ -51,9 +51,9 @@ public class DownloadHandlerThread implements Runnable {
                     downloadQueue.remove(photo);
                 }
                 byte [] dataSource = photoService.findDataByCardId(photo.getCardId());
-                if(dataSource ==null){
+                if(dataSource == null){
                     System.out.println("身份证号："+photo.getCardId()+"未查出数据不进行下载！");
-                    return;
+                    continue;
                 }
                 //姓名
                 String fileName = (photo.getName()!=null?photo.getName():"none")+"_";

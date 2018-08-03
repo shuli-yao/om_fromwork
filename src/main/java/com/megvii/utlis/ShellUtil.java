@@ -66,7 +66,7 @@ public class ShellUtil {
 
                             log.info("输出流正常执行:"+line);
                             result.append(line).append("\n");
-                            Thread.sleep(500);
+//                            Thread.sleep(500);
                         }
                     }catch (Exception e){
 
@@ -92,7 +92,7 @@ public class ShellUtil {
                                 continue;
                             }
                             log.info("异常流正常执行:"+line);
-                            Thread.sleep(500);
+//                            Thread.sleep(500);
                         }
                     }catch (Exception e){
 

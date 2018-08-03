@@ -302,7 +302,7 @@ public class ServiceOperationController {
                     String result = fileIoUtils.deleteFile(systemConfig.getFilePath());
 
                     log.info(result);
-                    if(it< queryMaxNumber || endNumber.intValue() >=  end.intValue()){
+                    if(endNumber.intValue() >=  end.intValue()){
                         System.out.println("结束"+it);
                         break;
                     }
@@ -326,5 +326,7 @@ public class ServiceOperationController {
         thread.start();
         return "启动成功，请通过日志查询执行结果!";
     }
+
+
 
 }

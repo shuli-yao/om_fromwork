@@ -94,7 +94,8 @@ public class PhotoSerivceImpl implements PhotoService{
             for (Photo photo : photos) {
                 countNumbe++;
                 Date queryDateTime = sdf.parse(queryDate);
-                if((queryDateTime.getTime()- photo.getChangeTime().getTime()) ==0){
+                if(isTimeStrEquest(queryDateTime,photo.getChangeTime())){
+                    log.info("日期相同，进入更相同的判断！");
                     if(compareCardAndTime(photo.getCardId(),photo.getChangeTime())){
                         addNumber++;
                         downloadThreadPool.putImgUrl(photo);
@@ -114,8 +115,29 @@ public class PhotoSerivceImpl implements PhotoService{
                 break;
             }
         }
-        System.out.println("五、入库数量:"+addNumber);
+        log.info("五、入库数量:"+addNumber);
         return addNumber;
+    }
+
+
+    public boolean isTimeStrEquest(Date q,Date g){
+        boolean b = false;
+        if(q.equals(g)){
+            b = true;
+        }
+
+        if(q.toString().equals(g.toString())){
+            b= true;
+        }
+
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        if(sdf2.format(q).equals(sdf2.format(g))){
+            b=true;
+        }
+        log.info("日期1:"+sdf2.format(q)+",日期2:"+sdf2.format(g)+",结果为:"+b);
+//        (queryDateTime.getTime()- photo.getChangeTime().getTime()) ==0
+        return b;
+
     }
 
     /**
@@ -175,7 +197,12 @@ public class PhotoSerivceImpl implements PhotoService{
         byte [] data = null;
         List<Data> dataList = photoMapper.selectPhotoByCardId(cardId,systemConfig.getInputDbTalbeName());
         if(dataList !=null && dataList.size() > 0){
-            data =dataList.get(0).getPhotoFileData();
+            if(dataList.get(0)!=null && dataList.get(0).getPhotoFileData()!=null){
+                data =dataList.get(0).getPhotoFileData();
+            }else{
+                TextUtils textUtils = new TextUtils();
+                textUtils.writerText(systemConfig.getTextPaht()+File.separator+"ImgDataIsNull.txt",cardId,true);
+            }
         }
         return data;
     }
@@ -225,7 +252,7 @@ public class PhotoSerivceImpl implements PhotoService{
         List<String> readList = textUtils.readerText(systemConfig.getTextFilePath());
         for (String s : readList) {
             if(s.equals(Card+","+DateUtils.TIMEFORMAT.format(Time))) {
-                System.out.println("比对开始:"+s+"  库："+Card+","+DateUtils.TIMEFORMAT.format(Time));
+                log.info("比对开始:"+s+"  库："+Card+","+DateUtils.TIMEFORMAT.format(Time));
                 return false;
             }
         }
