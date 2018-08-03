@@ -7,6 +7,7 @@ import com.megvii.configuration.SystemConfig;
 import com.megvii.po.Photo;
 import com.megvii.service.PhotoService;
 import com.megvii.utlis.FileDownload;
+import com.megvii.utlis.IdcardUtils;
 
 /**
  * 执行下载程序线程对象
@@ -60,13 +61,7 @@ public class DownloadHandlerThread implements Runnable {
                 //身份证号
                 fileName += (photo.getCardId()!=null?photo.getCardId():"none")+"_";
                 //性别
-                if(photo.getSex()==null || "".equals(photo.getSex()) || !"2".equals(photo.getSex()) || !"1".equals(photo.getSex())){
-                    fileName +="none"+"_";
-                }else if("2".equals(photo.getSex())){
-                    fileName += "female"+"_";
-                }else if("1".equals(photo.getSex())){
-                    fileName += "male"+"_";
-                }
+                fileName +=getSex(photo.getCardId());
                 //民族
                 fileName +="none_";
                 //户籍
@@ -86,7 +81,21 @@ public class DownloadHandlerThread implements Runnable {
         }
     }
 
+    String getSex(String cardId){
+        boolean isValidate = IdcardUtils.isValidatedAllIdcard(cardId);
 
+        //性别
+        if(!isValidate){
+            return "none_";
+        }
+        String sex =IdcardUtils.getGender(cardId);
+        if("female".equals(sex)){
+            return  "female"+"_";
+        }else if("male".equals(sex)){
+            return  "male"+"_";
+        }
+        return "none_";
+    }
 
 
 
