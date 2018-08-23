@@ -22,7 +22,7 @@ public class Swagger2Configuration {
      */
     private final String SWAGGER2_API_TITLE = "人像下载工具接口文档";    //标题
     private final String SWAGGER2_API_BASEPACKAGE = "";
-    private final String SWAGGER2_API_DESCRIPTION = "江苏省厅图片落地工具";
+    private final String SWAGGER2_API_DESCRIPTION = "天津移动警务";
     private final String SWAGGER2_API_CONTACT = "shuli.yao";
     private final String SWAGGER2_API_VERSION = "1.0";
 

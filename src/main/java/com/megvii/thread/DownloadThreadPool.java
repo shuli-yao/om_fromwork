@@ -25,32 +25,36 @@ import java.util.concurrent.*;
 @Slf4j
 public class DownloadThreadPool {
 
+    //定义下载队列长度
     @Value("${photo.download.queue.size}")
-    public  int downloadQueueSize;    //定义下载队列长度
+    public  int downloadQueueSize;
 
+    //定义下载线程池大小
     @Value("${photo.download.thread.pool.size}")
-    public  int poolSize;        //定义下载线程池大小
+    public  int poolSize;
 
+    //获取txt写入工具类
     TextUtils textUtils = new TextUtils();
 
     private  static String time ="";
-
     public void setTime(String timeStr){
         time =timeStr;
     }
 
-
+    //定义执行线程池
     public  ExecutorService cachedThreadPool ;
 
+    //定义人像落地队列
     public  LinkedBlockingQueue<Photo> downloadQueue;
 
+    //定义txt写入队列
     public  LinkedBlockingQueue<Photo> textQueue;
 
-    private DownloadFileConfig fileConfig = new DownloadFileConfig();
-
+    //获取系统变量对象
     @Autowired
     private SystemConfig systemConfig;
 
+    //获取数据库操作对象
     @Autowired
     private PhotoService photoService;
 
@@ -62,28 +66,18 @@ public class DownloadThreadPool {
 
         this.downloadQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建阻塞队列对象
 
-        this.cachedThreadPool = Executors.newFixedThreadPool(poolSize);  //定义线程池
+        this.cachedThreadPool = Executors.newFixedThreadPool(poolSize);  //创建下载线程池
 
-        this.textQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize);
+        this.textQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建txt写入队列
 
-        Thread thread =new Thread(new Runnable() {
-            @Override
-            public void run() {
-                writeText();
-            }
-        });
+        //启动txt写入方法
+        Thread thread = new Thread(() -> writeText());
 
         thread.start();
     }
 
 
-    /**
-     * 获取阻塞队列方法
-     * @return
-     */
-    public  LinkedBlockingQueue  getArrayBlockingQueue(){
-        return downloadQueue;
-    }
+
 
     /**
      * 执行线程
@@ -109,6 +103,14 @@ public class DownloadThreadPool {
             return  false;
         }
         return true;
+    }
+
+    /**
+     * 获取阻塞队列方法
+     * @return
+     */
+    public  LinkedBlockingQueue  getArrayBlockingQueue(){
+        return downloadQueue;
     }
 
     public void writeText(){
