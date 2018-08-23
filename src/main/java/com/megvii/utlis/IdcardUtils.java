@@ -471,6 +471,9 @@ public class IdcardUtils {
         if (idcard == null || "".equals(idcard)) {
             return "none";
         }
+        if(idcard.length() == 15){
+           idcard = convertIdcarBy15bit(idcard);
+        }
         String sCardNum = idcard.substring(16, 17);
         try {
             if (Integer.parseInt(sCardNum) % 2 != 0) {
