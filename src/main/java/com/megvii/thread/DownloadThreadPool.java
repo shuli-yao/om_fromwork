@@ -113,23 +113,35 @@ public class DownloadThreadPool {
         return downloadQueue;
     }
 
+    /**
+     *  txt写入程序
+     * 流程
+     *  1.从text写入队列中获取需要写入人像对象
+     *  2.组装写入内容
+     *  3.检查写入规则 all | job
+     *  4.根据不同规则写入txt,全量会一直追加txt，增量会根据时间清空txt
+     */
     public void writeText(){
         while (true){
             try {
                 if(textQueue.size()>0){
+                    //1.获取txt写入队列中数据
                     Photo photo= textQueue.take();
                     if(photo ==null){
                         continue;
                     }
+                    //2.格式化组装写入文本
                     String changeTime = DateUtils.TIMEFORMAT.format(photo.getChangeTime());
                     String text = photo.getCardId()+","+changeTime;
 
+                    //3.检查写入规则
                     if("all".equals(systemConfig.getImprotType())){
 
+                        //4.全量持续写入
                         textUtils.writerText(systemConfig.getTextFilePath(), text, true);
-
                     } if("job".equals(systemConfig.getImprotType())){
 
+                        //4.增量根据时间判断，会清除txt脚本
                         if (time == null || "".equals(time) || "big".equals(stringDateCompare(changeTime, time))){
                             textUtils.writerText(systemConfig.getTextFilePath(), text, false);
                             time =changeTime;
@@ -148,6 +160,12 @@ public class DownloadThreadPool {
         }
     }
 
+    /**
+     * 比较时间大小
+     * @param oneDateStr
+     * @param twoDateStr
+     * @return
+     */
     public String stringDateCompare(String oneDateStr,String twoDateStr){
 
         Date oneDate = null;
