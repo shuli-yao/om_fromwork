@@ -23,7 +23,7 @@ import java.util.List;
 @Service
 @Slf4j
 
-public class PhotoSerivceImpl implements PhotoService {
+public class PhotoServiceImpl implements PhotoService {
 
     //执行shell脚本工具对象
     private ShellUtil shellUtil = new ShellUtil();
