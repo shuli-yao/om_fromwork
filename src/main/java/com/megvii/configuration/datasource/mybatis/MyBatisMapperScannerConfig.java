@@ -24,12 +24,10 @@
 
 package com.megvii.configuration.datasource.mybatis;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tk.mybatis.spring.mapper.MapperScannerConfigurer;
-
 import java.util.Properties;
 
 /**

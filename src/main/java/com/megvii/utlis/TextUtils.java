@@ -2,13 +2,12 @@ package com.megvii.utlis;
 
 
 import java.io.*;
-import java.net.FileNameMap;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- *  txt操作
+ *  txt操作工具类
+ *  @author shuli.yao
  */
 public class TextUtils {
 
@@ -50,6 +49,11 @@ public class TextUtils {
         return false;
     }
 
+    /**
+     * 读取txt中内容
+     * @param textPath
+     * @return
+     */
     public List<String> readerText(String textPath){
 
         List<String> resultList = new ArrayList<>();
@@ -80,6 +84,11 @@ public class TextUtils {
         return resultList;
     }
 
+    /**
+     * 读取txt中内容仅读取一行
+     * @param textPath
+     * @return
+     */
     public String readerOneRowText(String textPath){
         FileReader fileReader = null;
 
@@ -113,6 +122,13 @@ public class TextUtils {
         return "";
     }
 
+    /**
+     * copy及修改txt中内容
+     * @param filePath
+     * @param rowNumber
+     * @param replaceContext
+     * @return
+     */
     public  Boolean copyChangeTextContext(String filePath, Integer rowNumber, String replaceContext){
         FileReader fileReader = null;
 

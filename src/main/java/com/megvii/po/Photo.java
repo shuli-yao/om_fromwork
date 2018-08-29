@@ -27,9 +27,6 @@ public class Photo {
     //性别
     String sex;
 
-    //照片数据
-//    byte[] photoFileData;
-
     //民族
     String ethnic;
 

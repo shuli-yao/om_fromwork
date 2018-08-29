@@ -4,6 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 
+/**
+ * shell脚本操作工具类
+ * @author shuli.yao
+ */
 @Slf4j
 public class ShellUtil {
 

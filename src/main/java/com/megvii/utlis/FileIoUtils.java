@@ -2,6 +2,10 @@ package com.megvii.utlis;
 
 import java.io.File;
 
+/**
+ * 文件操作类 (目前仅有删除)
+ * @author shuli.yao
+ */
 public class FileIoUtils
 {
     public String deleteFile(String path){

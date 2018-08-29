@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.megvii.dbsource.oracle.mapper.PhotoMapper">
   <resultMap id="BaseResultMap" type="com.megvii.po.Photo">
     <result column="XM" jdbcType="VARCHAR" property="name"/>
     <result column="SFZH" jdbcType="VARCHAR" property="cardId"/>
     <result column="RKSJ" jdbcType="DATE" property="createTime"/>
     <result column="TAB_ID" jdbcType="VARCHAR" property="id"/>
-    <result column="ZHBGSJ" jdbcType="VARCHAR" property="changeTime"/>
+    <result column="XB" jdbcType="VARCHAR" property="sex"/>
+    <result column="MZ" jdbcType="VARCHAR" property="ethnic"/>
   </resultMap>
 
   <resultMap id="DataReusltMap" type="com.megvii.po.Data">
@@ -15,7 +16,7 @@
   </resultMap>
 
   <select id="selectPhotoByPage" resultMap="BaseResultMap">
-      select * from ${tableNaem} where ZHBGSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')
+    select * from ${tableNaem} where ZHBGSJ >= to_date(#{2,jdbcType=VARCHAR},'yyyy/mm/dd hh24:mi:ss')
   </select>
 
   <select id="selectPhotoByPageNoOrder" resultMap="BaseResultMap">
@@ -40,7 +41,7 @@
 
 
   <insert id="testInsert" parameterType="Map">
-    INSERT INTO "SCOTT"."photo" ("id", "SFZH", "XM", "XB", "XP", "MZ","HJ","RKSJ_ZYK") VALUES (#{id},#{cradId},#{id},'1',#{bytes,jdbcType=BLOB},'汉','shandong',to_date(#{changeTiem},'yyyy/mm/dd hh24:mi:ss'))
+    INSERT INTO "SCOTT"."photo" ("id", "SFZH", "XM", "XB", "XP", "MZ","HJ","RKSJ_ZYK") VALUES (#{id},#{cradId},#{id},'1',#{bytes,jdbcType=BLOB},'���','shandong',to_date(#{changeTiem},'yyyy/mm/dd hh24:mi:ss'))
   </insert>
 
 

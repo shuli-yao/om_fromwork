@@ -16,16 +16,19 @@ import java.text.ParseException;
 @Slf4j
 public class AutoImportJob {
 
+    //获取系统环境变量
     @Autowired
     SystemConfig systemConfig;
 
+    //获取入库操作对象
     @Autowired
     PhotoService photoService;
 
+    //获取执行下载任务线程池
     @Autowired
     DownloadThreadPool downloadThreadPool;
 
-
+    //获取io操作工具类
     private FileIoUtils fileIoUtils = new FileIoUtils();
 
     @Scheduled(cron = "${improt.quartzs.job.time}")
@@ -50,6 +53,8 @@ public class AutoImportJob {
                     log.info("没有新数据不进行入库操作!");
                     return;
                 }
+
+                //延迟等待，防止入库时还有数据没有下载完
                 while (true) {
                     if (downloadThreadPool.downloadQueue.size() > 0) {
                         log.info("下载队列中还存在数据不进行下一步操作：" + downloadThreadPool.downloadQueue.size());
@@ -62,6 +67,7 @@ public class AutoImportJob {
                     }
                     break;
                 }
+
                 //执行清除入库工具记录任务
                 photoService.shellImprotPhoto(systemConfig.getClearShellName(), systemConfig.getShellPath(), systemConfig.getShellConfigPath());
                 //执行调用入库工具任务

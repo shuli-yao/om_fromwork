@@ -25,34 +25,41 @@ import java.util.concurrent.*;
 @Slf4j
 public class DownloadThreadPool {
 
+    //获取下载队列长度
     @Value("${photo.download.queue.size}")
-    public  int downloadQueueSize;    //定义下载队列长度
+    public  int downloadQueueSize;
 
+    //获取下载线程池大小
     @Value("${photo.download.thread.pool.size}")
-    public  int poolSize;        //定义下载线程池大小
+    public  int poolSize;
 
+    //获取系统变量对象
+    @Autowired
+    private SystemConfig systemConfig;
+
+    //获取数据库操作对象
+    @Autowired
+    private PhotoService photoService;
+
+    //获取txt操作对象
     TextUtils textUtils = new TextUtils();
 
-    private  static String time ="";
+    //定义线程池对象
+    public  ExecutorService cachedThreadPool ;
 
+    //定义下载队列
+    public  LinkedBlockingQueue<Photo> downloadQueue;
+
+    //定义txt写入队列
+    public  LinkedBlockingQueue<Photo> textQueue;
+
+    //定义时间戳变量
+    private  static String time ="";
     public void setTime(String timeStr){
         time =timeStr;
     }
 
 
-    public  ExecutorService cachedThreadPool ;
-
-    public  LinkedBlockingQueue<Photo> downloadQueue;
-
-    public  LinkedBlockingQueue<Photo> textQueue;
-
-    private DownloadFileConfig fileConfig = new DownloadFileConfig();
-
-    @Autowired
-    private SystemConfig systemConfig;
-
-    @Autowired
-    private PhotoService photoService;
 
     /**
      * 通过初始化方法创建线程池及下载队列对象
@@ -60,30 +67,23 @@ public class DownloadThreadPool {
     @PostConstruct
     public void init(){
 
-        this.downloadQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建阻塞队列对象
+        this.downloadQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建下载队列
 
-        this.cachedThreadPool = Executors.newFixedThreadPool(poolSize);  //定义线程池
+        this.cachedThreadPool = Executors.newFixedThreadPool(poolSize);  //创建线程池
 
-        this.textQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize);
+        this.textQueue = new LinkedBlockingQueue<Photo>(downloadQueueSize); //创建txt写入队列
 
+        //启动txt写入方法
         Thread thread =new Thread(new Runnable() {
             @Override
             public void run() {
                 writeText();
             }
         });
-
         thread.start();
     }
 
 
-    /**
-     * 获取阻塞队列方法
-     * @return
-     */
-    public  LinkedBlockingQueue  getArrayBlockingQueue(){
-        return downloadQueue;
-    }
 
     /**
      * 执行线程
@@ -94,7 +94,7 @@ public class DownloadThreadPool {
     }
 
     /**
-     * 向队列中添加数据
+     * 向下载队列中添加数据
      */
     public  boolean putImgUrl(Photo value){
         try {
@@ -111,23 +111,51 @@ public class DownloadThreadPool {
         return true;
     }
 
+    /**
+     * 获取阻塞队列方法
+     * @return
+     */
+    public  LinkedBlockingQueue  getArrayBlockingQueue(){
+        return downloadQueue;
+    }
+
+
+     /**
+     *
+
+     */
+    /**
+     * txt写入程序
+     * 流程
+     *  1.从文本写入队列中获取需要写入人像对象
+     *  2.组装写入内容
+     *  3.检查写入规则所有| 工作
+     *  4.根据不同规则写入txt，全量会一直追加txt，增量会根据时间清空txt
+     */
     public void writeText(){
         while (true){
             try {
                 if(textQueue.size()>0){
+
+                    //1.获取txt写入队列中数据
                     Photo photo= textQueue.take();
                     if(photo ==null){
                         continue;
                     }
+
+                    //2.格式化组装写入文本
                     String changeTime = DateUtils.TIMEFORMAT.format(photo.getChangeTime());
                     String text = photo.getCardId()+","+changeTime;
 
+                    //3.检查写入规则
                     if("all".equals(systemConfig.getImprotType())){
 
+                        //4.全量持续写入
                         textUtils.writerText(systemConfig.getTextFilePath(), text, true);
 
                     } if("job".equals(systemConfig.getImprotType())){
 
+                        //4.增量根据时间判断，会清除txt脚本
                         if (time == null || "".equals(time) || "big".equals(stringDateCompare(changeTime, time))){
                             textUtils.writerText(systemConfig.getTextFilePath(), text, false);
                             time =changeTime;
@@ -146,6 +174,12 @@ public class DownloadThreadPool {
         }
     }
 
+    /**
+     * 比较时间大小
+     * @param oneDateStr
+     * @param twoDateStr
+     * @return
+     */
     public String stringDateCompare(String oneDateStr,String twoDateStr){
 
         Date oneDate = null;
