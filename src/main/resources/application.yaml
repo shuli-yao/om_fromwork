@@ -17,3 +17,6 @@ spring:
       maximum-pool-size: 20
   resources:
     static-locations: classpath:/
+  mvc:
+    view:
+      suffix: .html
