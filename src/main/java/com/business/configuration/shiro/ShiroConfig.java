@@ -39,6 +39,10 @@ public class ShiroConfig {
         //<!-- authc:所有url都必须认证通过才可以访问; anon:所有url都都可以匿名访问-->
         filterChainDefinitionMap.put("/login/loginUser", "anon");
 
+        filterChainDefinitionMap.put("/css/*", "anon");
+        filterChainDefinitionMap.put("/img/*", "anon");
+        filterChainDefinitionMap.put("/js/*", "anon");
+
         filterChainDefinitionMap.put("/pressure/*", "roles[pressure]");
         filterChainDefinitionMap.put("/sys/*", "roles[admin]");
 
@@ -50,7 +54,7 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setLoginUrl("/login.html");
 
         // 登录成功后要跳转的链接
-        shiroFilterFactoryBean.setSuccessUrl("/templates/index.html");
+        shiroFilterFactoryBean.setSuccessUrl("/login.html");
 
         //未授权界面;
         shiroFilterFactoryBean.setUnauthorizedUrl("/403.html");

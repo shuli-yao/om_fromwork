@@ -1,23 +1,17 @@
 package com.business.configuration.shiro;
 
+import com.business.EncryptUtils;
 import com.business.po.User;
 import com.business.service.UserService;
-import com.sun.istack.internal.tools.DefaultAuthenticator;
-import jdk.nashorn.internal.ir.IfNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
-import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.AuthorizingRealm;
-import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import sun.rmi.runtime.Log;
-
-import java.awt.*;
 
 /**
  * @ClassName BusinessRealm
@@ -45,16 +39,27 @@ public class BusinessRealm extends AuthorizingRealm {
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
-        String username = authenticationToken.getPrincipal().toString();
 
+        String username = authenticationToken.getPrincipal().toString();
         SimpleAuthenticationInfo info= null;
+
+        //进入系统默认超级管理员用户认证
+        if(username!=null && "admin".equals(username)){
+            //加密
+            String password =EncryptUtils.sha256Encrypt("123456a");
+            info = new SimpleAuthenticationInfo(username,password,getName());
+            return info;
+        }
+
+        //进入正常登录验证，通过查询db信息验证用户
         if (username != null) {
             User user;
             try {
                 user = userService.findUserByName(username);
                 info = new SimpleAuthenticationInfo(username,user.getPassword(),getName());
             } catch (NullPointerException n) {
-                log.info("用户名不存在!");
+                log.info("没有查询到相应的用户名信息!");
+
             }
             return info;
         }
@@ -67,6 +72,9 @@ public class BusinessRealm extends AuthorizingRealm {
         super.setAuthorizationCachingEnabled(false);
     }
 
-
+    @Override
+    public void setCredentialsMatcher(CredentialsMatcher credentialsMatcher) {
+        super.setCredentialsMatcher(new SHA256HashedCredentialsMatcher());
+    }
 }
 

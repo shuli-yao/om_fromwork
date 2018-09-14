@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @Author ysl1397940314@163.com
  * @CreateTime 2018/8/16 下午3:20
  */
-@Configuration
+//@Configuration
 public class SystemFilterRun implements WebMvcConfigurer{
 
 //    @Autowired
